@@ -1,5 +1,6 @@
 package com.example.androidtutorial
 
+import android.content.Intent
 import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -28,6 +29,8 @@ class MainActivity : AppCompatActivity() {
             connectButton.text = "Disconnect"
             connectButton.setBackgroundColor(Color.parseColor("#ff669900"))
             connect = true
+            val intent = Intent(this, MenuActivity::class.java)
+            startActivity(intent)
         }
     }
 }
