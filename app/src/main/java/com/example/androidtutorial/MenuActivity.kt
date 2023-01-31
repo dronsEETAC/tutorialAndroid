@@ -1,5 +1,6 @@
 package com.example.androidtutorial
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
@@ -19,7 +20,10 @@ class MenuActivity : AppCompatActivity() {
 
         showAlertButton = findViewById(R.id.showAlert_btn)
         showAlertButton.setOnClickListener { showAlert() }
+
         inputButton = findViewById(R.id.input_btn)
+        inputButton.setOnClickListener { input() }
+
         getValueButton = findViewById(R.id.getValue_btn)
         parametersButton = findViewById(R.id.parameters_btn)
         videoButton = findViewById(R.id.video_btn)
@@ -39,4 +43,10 @@ class MenuActivity : AppCompatActivity() {
         alert.setTitle("AlertDialog")
         alert.show()
     }
+
+    private fun input(){
+        val intent = Intent(this, InputActivity::class.java)
+        startActivity(intent)
+    }
+
 }
