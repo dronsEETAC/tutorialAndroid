@@ -25,10 +25,20 @@ class MenuActivity : AppCompatActivity() {
         inputButton.setOnClickListener { input() }
 
         getValueButton = findViewById(R.id.getValue_btn)
+
         parametersButton = findViewById(R.id.parameters_btn)
+        parametersButton.setOnClickListener { parameters() }
+
+
         videoButton = findViewById(R.id.video_btn)
         mapButton = findViewById(R.id.map_btn)
     }
+
+    private fun parameters() {
+        val intent = Intent(this@MenuActivity, ParametersActivity::class.java)
+        startActivity(intent)
+    }
+
     private fun showAlert(){
         val dialogBuilder = AlertDialog.Builder(this)
         dialogBuilder.setMessage("Do you want to close this application?")
@@ -45,8 +55,9 @@ class MenuActivity : AppCompatActivity() {
     }
 
     private fun input(){
-        val intent = Intent(this, InputActivity::class.java)
+        val intent = Intent(this@MenuActivity, InputActivity::class.java)
         startActivity(intent)
     }
+
 
 }
