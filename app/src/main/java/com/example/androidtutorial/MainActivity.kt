@@ -29,6 +29,9 @@ class MainActivity : AppCompatActivity() {
             connectButton.text = "Disconnect"
             connectButton.setBackgroundColor(Color.parseColor("#ff669900"))
             connect = true
+
+            MqttClientClass.getMqttInstance(this)
+
             val intent = Intent(this, MenuActivity::class.java)
             startActivity(intent)
         }
