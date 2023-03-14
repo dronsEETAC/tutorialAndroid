@@ -8,6 +8,8 @@ import android.widget.CheckBox
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.SeekBar
+import androidx.appcompat.app.AlertDialog
+import com.google.gson.Gson
 
 class ParametersActivity : AppCompatActivity() {
     private var radioGroup: RadioGroup? = null
@@ -55,6 +57,27 @@ class ParametersActivity : AppCompatActivity() {
         }
 
         Log.d("ParametersActivity send", "RadioButton: ${radioButton.text}, CheckBox: $result, SeekBar: ${seekBar.progress}")
+
+        val parameters = Parameters(radioButton.text.toString(), result.toString(), seekBar.progress.toString())
+        val jsonString = Gson().toJson(parameters)
+
+        Log.d("ParametersActivity json", "jsonString = $jsonString")
+
+        val dialogBuilder = AlertDialog.Builder(this)
+        dialogBuilder.setMessage("Are you sure you want to sen the data?")
+            .setCancelable(false)
+            .setPositiveButton("Yes") { _, _ ->
+                MqttClientClass.publish("writeParameters", jsonString)
+                finish()
+            }
+            .setNegativeButton("No") { dialog, _ ->
+                dialog.cancel()
+            }
+        val alert = dialogBuilder.create()
+        alert.setTitle("AlertDialog")
+        alert.show()
+
+
 
     }
 }
