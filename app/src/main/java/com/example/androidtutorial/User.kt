@@ -1,4 +1,3 @@
 package com.example.androidtutorial
 
-data class User(var name:String, var age: Int) {
-}
+data class User(var name:String, var age: Int)

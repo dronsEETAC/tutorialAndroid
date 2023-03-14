@@ -9,11 +9,14 @@ import org.eclipse.paho.client.mqttv3.*
 class MqttClientClass private constructor() {
 
     lateinit var client: MqttAndroidClient
+    var messageGetValue: String? = null
 
     companion object{
         private var mqttInstance:MqttClientClass? = null
         private const val serverURI : String = "tcp://broker.hivemq.com:1883"
         private var clientId = MqttClient.generateClientId()
+
+        private val TAG = "MQTT Client"
 
         fun getMqttInstance(activity: Activity): MqttClientClass {
             if (mqttInstance == null){
@@ -25,20 +28,55 @@ class MqttClientClass private constructor() {
                 try {
                     mqttInstance!!.client.connect(options, null, object : IMqttActionListener {
                         override fun onSuccess(asyncActionToken: IMqttToken?) {
-                            Log.d("MQTT Client", "Connection success")
+                            Log.d(TAG, "Connection success")
+                            subscribe("getValue")
                         }
 
                         override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                            Log.d("MQTT Client", "Connection failure")
+                            Log.d(TAG, "Connection failure")
                             exception?.printStackTrace()
                         }
                     })
                 } catch (e: MqttException) {
                     e.printStackTrace()
                 }
-            }
+                mqttInstance!!.client.setCallback(object : MqttCallback {
+                    override fun messageArrived(topic: String, message: MqttMessage) {
+                        Log.d(TAG, "Receive message: ${message.toString()} from topic: $topic")
+                        onMessage(message, topic)
+                    }
 
+                    override fun connectionLost(cause: Throwable?) {
+                        Log.d(TAG, "Connection lost ${cause.toString()}")
+                    }
+
+                    override fun deliveryComplete(token: IMqttDeliveryToken?) {
+                        Log.d(TAG, "Delivery Complete")
+                    }
+                })
+            }
             return mqttInstance!!
         }
+        private fun subscribe(topic: String, qos: Int = 1) {
+            try {
+                mqttInstance!!.client.subscribe(topic, qos, null, object : IMqttActionListener {
+                    override fun onSuccess(asyncActionToken: IMqttToken?) {
+                        Log.d(TAG, "Subscribed to $topic")
+                    }
+
+                    override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
+                        Log.d(TAG, "Failed to subscribe $topic because ${exception?.printStackTrace()}")
+                    }
+                })
+            } catch (e: MqttException) {
+                e.printStackTrace()
+            }
+        }
+
+        private fun onMessage(message: MqttMessage, topic: String){
+            if (topic == "getValue")
+                mqttInstance?.messageGetValue = message.toString()
+        }
+
     }
 }
