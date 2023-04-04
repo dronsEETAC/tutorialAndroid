@@ -13,7 +13,7 @@ class MqttClientClass private constructor() {
 
     companion object{
         private var mqttInstance:MqttClientClass? = null
-        private const val serverURI : String = "tcp://broker.hivemq.com:1883"
+        private const val serverURI : String = "ws://broker.hivemq.com:8000"
         private var clientId = MqttClient.generateClientId()
 
         private val TAG = "MQTT Client"
@@ -29,7 +29,10 @@ class MqttClientClass private constructor() {
                     mqttInstance!!.client.connect(options, null, object : IMqttActionListener {
                         override fun onSuccess(asyncActionToken: IMqttToken?) {
                             Log.d(TAG, "Connection success")
-                            subscribe("getValue")
+                            publish("Connect","")
+                            subscribe("Value")
+                            publish("getValue", "")
+                            subscribe("writeParameters")
                         }
 
                         override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
@@ -74,9 +77,10 @@ class MqttClientClass private constructor() {
         }
 
         private fun onMessage(message: MqttMessage, topic: String){
-            if (topic == "getValue")
+            if (topic == "Value")
                 mqttInstance?.messageGetValue = message.toString()
         }
+
         fun publish(topic: String, msg: String, qos: Int = 1, retained: Boolean = false) {
             try {
                 val message = MqttMessage()

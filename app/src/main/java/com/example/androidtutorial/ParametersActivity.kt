@@ -36,6 +36,7 @@ class ParametersActivity : AppCompatActivity() {
 
         sendButton = findViewById(R.id.sendParameters_btn)
         sendButton.setOnClickListener { sendParameters() }
+
     }
 
     private fun sendParameters() {
