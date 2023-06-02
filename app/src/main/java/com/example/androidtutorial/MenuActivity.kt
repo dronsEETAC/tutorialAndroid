@@ -35,10 +35,17 @@ class MenuActivity : AppCompatActivity() {
 
 
         videoButton = findViewById(R.id.video_btn)
+        videoButton.setOnClickListener { video() }
+
         mapButton = findViewById(R.id.map_btn)
 
         mqttClient = MqttClientClass.getMqttInstance(this)
 
+    }
+
+    private fun video() {
+        val intent = Intent(this@MenuActivity, VideoActivity::class.java)
+        startActivity(intent)
     }
 
     private fun getValue() {
@@ -71,5 +78,6 @@ class MenuActivity : AppCompatActivity() {
         val intent = Intent(this@MenuActivity, InputActivity::class.java)
         startActivity(intent)
     }
+
 
 }

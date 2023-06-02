@@ -10,13 +10,17 @@ class MqttClientClass private constructor() {
 
     lateinit var client: MqttAndroidClient
     var messageGetValue: String? = null
+    var imageByteArray: ByteArray = byteArrayOf()
+    var sendingVideoStream : Boolean = false
+    var observers = mutableListOf<ClientObserver>()
+    var newImage : Boolean = false
 
     companion object{
         private var mqttInstance:MqttClientClass? = null
         private const val serverURI : String = "ws://broker.hivemq.com:8000"
         private var clientId = MqttClient.generateClientId()
 
-        private val TAG = "MQTT Client"
+        private const val TAG = "MQTT Client"
 
         fun getMqttInstance(activity: Activity): MqttClientClass {
             if (mqttInstance == null){
@@ -45,7 +49,7 @@ class MqttClientClass private constructor() {
                 }
                 mqttInstance!!.client.setCallback(object : MqttCallback {
                     override fun messageArrived(topic: String, message: MqttMessage) {
-                        Log.d(TAG, "Receive message: ${message.toString()} from topic: $topic")
+                        Log.d(TAG, "Receive message: $message from topic: $topic")
                         onMessage(message, topic)
                     }
 
@@ -60,7 +64,7 @@ class MqttClientClass private constructor() {
             }
             return mqttInstance!!
         }
-        private fun subscribe(topic: String, qos: Int = 1) {
+        fun subscribe(topic: String, qos: Int = 1) {
             try {
                 mqttInstance!!.client.subscribe(topic, qos, null, object : IMqttActionListener {
                     override fun onSuccess(asyncActionToken: IMqttToken?) {
@@ -77,8 +81,22 @@ class MqttClientClass private constructor() {
         }
 
         private fun onMessage(message: MqttMessage, topic: String){
-            if (topic == "Value")
-                mqttInstance?.messageGetValue = message.toString()
+            when (topic){
+                "Value" -> {
+                    mqttInstance?.messageGetValue = message.toString()
+                }
+                "videoFrame" -> {
+                    mqttInstance?.imageByteArray = message.payload
+                    newImageChange(true)
+                }
+                "StartVideoStream" -> {
+                    subscribe("StopVideoStream")
+                    mqttInstance?.sendingVideoStream = true
+                }
+                "StopVideoStream" -> mqttInstance?.sendingVideoStream = false
+
+            }
+
         }
 
         fun publish(topic: String, msg: String, qos: Int = 1, retained: Boolean = false) {
@@ -101,5 +119,16 @@ class MqttClientClass private constructor() {
             }
         }
 
+        fun addObserver(observer: ClientObserver){
+            mqttInstance!!.observers.add(observer)
+        }
+
+        fun newImageChange(value:Boolean){
+            mqttInstance!!.newImage  = value
+            mqttInstance!!.observers.forEach { clientObserver ->
+                clientObserver.newImage(mqttInstance!!.newImage)
+            }
+
+        }
     }
 }
