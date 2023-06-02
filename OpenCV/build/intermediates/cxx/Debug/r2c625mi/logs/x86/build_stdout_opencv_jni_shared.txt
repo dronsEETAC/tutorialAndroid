@@ -1,0 +1,2 @@
+ninja: Entering directory `C:\Users\Asus\Desktop\TFG\andoridTutorial\OpenCV\.cxx\Debug\r2c625mi\x86'
+ninja: no work to do.
