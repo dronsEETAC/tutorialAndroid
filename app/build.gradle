@@ -29,7 +29,11 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    packagingOptions {
+        pickFirst '**/*.so'
+    }
 }
+
 dependencies {
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.appcompat:appcompat:1.5.1'
@@ -42,4 +46,5 @@ dependencies {
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.4'
     implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
     implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.mapbox.maps:android:10.13.0'
 }

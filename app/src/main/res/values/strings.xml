@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">androidTutorial</string>
+    <string name="mapbox_access_token">pk.eyJ1IjoibGF1cmFudWV6IiwiYSI6ImNsZThxaHcxdzBjdjg0MXBmOG9la2p5YTUifQ.36pv7G-7l5JSgAbw9UySyg</string>
 </resources>
