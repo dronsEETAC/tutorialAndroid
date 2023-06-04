@@ -6,3 +6,21 @@ create_cxx_tasks
   create-initial-cxx-model completed in 89ms
 create_cxx_tasks completed in 91ms
 
+# C/C++ build system timings
+create_cxx_tasks
+  create-initial-cxx-model
+    create-module-model
+      [gap of 21ms]
+      create-project-model 10ms
+      [gap of 16ms]
+    create-module-model completed in 47ms
+    create-variant-model 10ms
+    [gap of 24ms]
+    create-X86_64-model 15ms
+    create-module-model 22ms
+    [gap of 17ms]
+    create-ARM64_V8A-model 22ms
+    create-X86_64-model 12ms
+  create-initial-cxx-model completed in 181ms
+create_cxx_tasks completed in 184ms
+
