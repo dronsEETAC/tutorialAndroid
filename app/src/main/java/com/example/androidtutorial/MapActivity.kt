@@ -25,7 +25,9 @@ import com.mapbox.maps.extension.style.layers.properties.generated.LineJoin
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.getSourceAs
 import com.mapbox.maps.extension.style.style
+import com.mapbox.maps.plugin.gestures.OnMapClickListener
 import com.mapbox.maps.plugin.gestures.OnMapLongClickListener
+import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.gestures.addOnMapLongClickListener
 import com.mapbox.maps.viewannotation.ViewAnnotationManager
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
@@ -33,7 +35,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.*
 
 
-class MapActivity : AppCompatActivity(), OnMapLongClickListener {
+class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListener {
 
     private lateinit var mapboxMap: MapboxMap
     private lateinit var viewAnnotationManager: ViewAnnotationManager
@@ -76,6 +78,7 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener {
                 styleExtension = prepareStyle(Style.SATELLITE_STREETS, scaledBitmap)
             ) {
                 addOnMapLongClickListener(this@MapActivity)
+                addOnMapClickListener(this@MapActivity)
             }
         }
     }
@@ -186,4 +189,29 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener {
             style.getSourceAs<GeoJsonSource>(LINE_SOURCE_ID)?.featureCollection(featureCollection)
         }
     }
+
+    override fun onMapClick(point: Point): Boolean {
+        clear()
+        return true
+    }
+
+    private fun clear(){
+        markerNum = 0
+        pointList.removeAll(pointList.toSet())
+        val featurePointCollection = FeatureCollection.fromFeatures(pointList)
+        mapboxMap.getStyle { style ->
+            style.getSourceAs<GeoJsonSource>(SOURCE_ID)?.featureCollection(featurePointCollection)
+        }
+
+        viewAnnotationManager.removeAllViewAnnotations()
+
+        lastAddedMarkerPosition = null
+
+        lineList.removeAll(lineList.toSet())
+        val featureLineCollection = FeatureCollection.fromFeatures(lineList)
+        mapboxMap.getStyle { style ->
+            style.getSourceAs<GeoJsonSource>(LINE_SOURCE_ID)?.featureCollection(featureLineCollection)
+        }
+    }
+
 }
