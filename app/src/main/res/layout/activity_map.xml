@@ -4,17 +4,79 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MapActivity">
+    tools:context=".MapActivity"
+    android:orientation="horizontal">
 
     <com.mapbox.maps.MapView xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:mapbox="http://schemas.android.com/apk/res-auto"
         android:id="@+id/mapView"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:layout_weight="3"
         mapbox:mapbox_cameraTargetLat="41.275946"
         mapbox:mapbox_cameraTargetLng="1.987475"
         mapbox:mapbox_cameraZoom="15.0"
         />
 
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/save_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save Flight Plan" />
+        <Button
+            android:id="@+id/load_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Load last flight plan" />
+        <Button
+            android:id="@+id/clear_btn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="clear" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/latitud_txt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_weight="1"
+                    android:text="Latitude"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:textStyle = "bold"/>
+                <TextView
+                    android:id="@+id/longitud_txt"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginEnd="20dp"
+                    android:layout_weight="1"
+                    android:padding="15dp"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"
+                    android:text="Longitude"
+                    android:textStyle = "bold"/>
+            </LinearLayout>
+            <ListView
+                android:id="@+id/listViewMap"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:listitem="@layout/map_list_item">
+            </ListView>
+        </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

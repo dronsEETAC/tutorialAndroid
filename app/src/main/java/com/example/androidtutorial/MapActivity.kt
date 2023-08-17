@@ -1,11 +1,15 @@
 package com.example.androidtutorial
 
+import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.widget.Button
+import android.widget.ListView
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.asynclayoutinflater.view.AsyncLayoutInflater
 import com.example.androidtutorial.databinding.ActivityMapBinding
 import com.mapbox.geojson.Feature
@@ -39,7 +43,8 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
 
     private lateinit var mapboxMap: MapboxMap
     private lateinit var viewAnnotationManager: ViewAnnotationManager
-    private val pointList = CopyOnWriteArrayList<Feature>()
+    private val featureList = CopyOnWriteArrayList<Feature>()
+    private val pointList = ArrayList<Point>()
 
     private var markerNum= 0
     private var markerWidth = 0
@@ -48,6 +53,12 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
     private val asyncInflater by lazy { AsyncLayoutInflater(this) }
     private val lineList = CopyOnWriteArrayList<Feature>()
     private var lastAddedMarkerPosition: Point? = null
+
+    private lateinit var saveButton : Button
+    private lateinit var loadButton : Button
+    private lateinit var clearButton : Button
+    private lateinit var pointAdapter : MapAdapter
+    private lateinit var listView : ListView
 
     private companion object {
         const val BLUE_ICON_ID = "blue"
@@ -65,7 +76,24 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
         val binding = ActivityMapBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
         viewAnnotationManager = binding.mapView.viewAnnotationManager
+
+        saveButton = findViewById(R.id.save_btn)
+        saveButton.setOnClickListener { save() }
+
+        loadButton = findViewById(R.id.load_btn)
+        loadButton.setOnClickListener { load() }
+
+        clearButton = findViewById(R.id.clear_btn)
+        clearButton.setOnClickListener { clear() }
+
+        listView = findViewById(R.id.listViewMap)
+
+        pointAdapter = MapAdapter(this, pointList)
+
+        listView.adapter = pointAdapter
 
         val bitmap = BitmapFactory.decodeResource(resources, R.drawable.marker)
         markerWidth = bitmap.width / 2
@@ -83,12 +111,18 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
         }
     }
 
+    private fun load() {
+    }
+
+    private fun save() {
+    }
+
     private fun prepareStyle(styleUri: String, bitmap: Bitmap) = style(styleUri) {
         +image(BLUE_ICON_ID) {
             bitmap(bitmap)
         }
         +geoJsonSource(SOURCE_ID) {
-            featureCollection(FeatureCollection.fromFeatures(pointList))
+            featureCollection(FeatureCollection.fromFeatures(featureList))
         }
         +symbolLayer(LAYER_ID, SOURCE_ID) {
             iconImage(BLUE_ICON_ID)
@@ -114,6 +148,10 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
 
     override fun onMapLongClick(point: Point): Boolean {
         val markerId = addMarkerAndReturnId(point)
+
+        pointAdapter.addPoint(point)
+        pointAdapter.notifyDataSetChanged()
+
         addViewAnnotation(point, markerId)
         if ( lastAddedMarkerPosition != null){
             addLineAndDistance(lastAddedMarkerPosition!!, point)
@@ -124,8 +162,8 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
 
     private fun addMarkerAndReturnId(point: Point): String {
         val currentId = "${MARKER_ID_PREFIX}${(markerNum++)}"
-        pointList.add(Feature.fromGeometry(point, null, currentId))
-        val featureCollection = FeatureCollection.fromFeatures(pointList)
+        featureList.add(Feature.fromGeometry(point, null, currentId))
+        val featureCollection = FeatureCollection.fromFeatures(featureList)
         mapboxMap.getStyle { style ->
             style.getSourceAs<GeoJsonSource>(SOURCE_ID)?.featureCollection(featureCollection)
         }
@@ -195,10 +233,10 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
         return true
     }
 
-    private fun clear(){
+    private fun clearAll(){
         markerNum = 0
-        pointList.removeAll(pointList.toSet())
-        val featurePointCollection = FeatureCollection.fromFeatures(pointList)
+        featureList.removeAll(featureList.toSet())
+        val featurePointCollection = FeatureCollection.fromFeatures(featureList)
         mapboxMap.getStyle { style ->
             style.getSourceAs<GeoJsonSource>(SOURCE_ID)?.featureCollection(featurePointCollection)
         }
@@ -212,6 +250,23 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
         mapboxMap.getStyle { style ->
             style.getSourceAs<GeoJsonSource>(LINE_SOURCE_ID)?.featureCollection(featureLineCollection)
         }
+
+        pointAdapter.delete()
+    }
+
+    private fun clear(){
+        val dialogBuilder = AlertDialog.Builder(this)
+        dialogBuilder.setMessage("Do you want to clear all?")
+            .setCancelable(false)
+            .setPositiveButton("Yes") { _, _ ->
+                clearAll()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.cancel()
+            }
+        val alert = dialogBuilder.create()
+        alert.setTitle("Clear Markers")
+        alert.show()
     }
 
 }
