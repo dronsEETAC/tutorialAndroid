@@ -41,6 +41,30 @@ class MenuActivity : AppCompatActivity() {
 
         mqttClient = MqttClientClass.getMqttInstance(this)
 
+        SocketIo.setSocket()
+        SocketIo.establishConnection()
+
+        val mSocket = SocketIo.getSocket()
+        mSocket.emit("connectPlatform")
+
+        mSocket.on("connected") {args ->
+            if (args[0] != null){
+                val msg = args[0] as String
+                runOnUiThread{
+                    val dialogBuilder = AlertDialog.Builder(this)
+                    dialogBuilder.setMessage("$msg")
+                        .setCancelable(false)
+                        .setPositiveButton("Ok"){ dialog, _ ->
+                            dialog.cancel()
+                        }
+                    val alert = dialogBuilder.create()
+                    alert.setTitle("SocketIO message")
+                    alert.show()
+                }
+            }
+
+        }
+
     }
 
     private fun video() {
