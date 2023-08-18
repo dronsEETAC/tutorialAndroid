@@ -1,4 +1,6 @@
 package com.example.androidtutorial.retrofit
 
-class FlightPlanItem {
-}
+data class FlightPlanItem (
+    val lat: Double,
+    val lng: Double
+)

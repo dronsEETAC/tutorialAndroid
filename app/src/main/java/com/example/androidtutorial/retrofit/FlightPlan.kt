@@ -1,4 +1,3 @@
 package com.example.androidtutorial.retrofit
 
-class FlightPlan {
-}
+class FlightPlan : ArrayList<FlightPlanItem>()

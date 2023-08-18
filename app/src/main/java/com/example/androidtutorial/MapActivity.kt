@@ -5,13 +5,18 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ListView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.asynclayoutinflater.view.AsyncLayoutInflater
 import com.example.androidtutorial.databinding.ActivityMapBinding
+import com.example.androidtutorial.retrofit.FlightPlan
+import com.example.androidtutorial.retrofit.FlightPlanClient
+import com.example.androidtutorial.retrofit.FlightPlanItem
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.geojson.LineString
@@ -35,11 +40,15 @@ import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.maps.plugin.gestures.addOnMapLongClickListener
 import com.mapbox.maps.viewannotation.ViewAnnotationManager
 import com.mapbox.maps.viewannotation.viewAnnotationOptions
+import okhttp3.ResponseBody
+import retrofit2.Call
+import retrofit2.Response
 import java.util.concurrent.CopyOnWriteArrayList
+import javax.security.auth.callback.Callback
 import kotlin.math.*
 
 
-class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListener {
+class MapActivity : AppCompatActivity(), OnMapLongClickListener {
 
     private lateinit var mapboxMap: MapboxMap
     private lateinit var viewAnnotationManager: ViewAnnotationManager
@@ -106,15 +115,75 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
                 styleExtension = prepareStyle(Style.SATELLITE_STREETS, scaledBitmap)
             ) {
                 addOnMapLongClickListener(this@MapActivity)
-                addOnMapClickListener(this@MapActivity)
             }
         }
     }
 
     private fun load() {
+        clearAll()
+
+        val call = FlightPlanClient.service.getData()
+
+        call.enqueue(object : retrofit2.Callback<List<FlightPlan>> {
+            override fun onResponse(call: Call<List<FlightPlan>>, response: Response<List<FlightPlan>>){
+                if (response.isSuccessful){
+                    val data = response.body()
+                    if (data != null){
+                        val lastFP = data[data.size-1]
+                        for (item in lastFP){
+                            val point = Point.fromLngLat(item.lng, item.lat)
+                            addPoint(point)
+                        }
+                    }
+                }
+            }
+            override fun onFailure(call: Call<List<FlightPlan>>, t: Throwable) {
+                Log.d("MapActivity Post", t.message.toString())
+                Log.d("MapActivity Post", t.stackTraceToString())
+            }
+        })
     }
 
     private fun save() {
+        val dialogBuilder = AlertDialog.Builder(this)
+        dialogBuilder.setMessage("Do you want to save flight plan an clear all?")
+            .setCancelable(false)
+            .setPositiveButton("Yes") { _, _ ->
+                val flightPlan = FlightPlan()
+                for(point in pointList){
+                    val item = FlightPlanItem(point.latitude(), point.longitude())
+                    flightPlan.add(item)
+                }
+
+                val call = FlightPlanClient.service.postFlightPlan(flightPlan)
+
+                call.enqueue(object : retrofit2.Callback<ResponseBody> {
+                    override fun onResponse(
+                        call: Call<ResponseBody>,
+                        response: Response<ResponseBody>
+                    ) {
+                        if (response.isSuccessful){
+                            clearAll()
+                            Toast.makeText(this@MapActivity, "the flight plan has been successfully saved", Toast.LENGTH_LONG)
+                        }else{
+                            Toast.makeText(this@MapActivity, "the request to the server has not been made correctly", Toast.LENGTH_LONG)
+
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                        // Handle error response
+                        Log.d("MarkerClick Post", t.message.toString())
+                        Log.d("MarkerClick Post", t.stackTraceToString())
+                    }
+                })
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.cancel()
+            }
+        val alert = dialogBuilder.create()
+        alert.setTitle("Save Flight Plan")
+        alert.show()
     }
 
     private fun prepareStyle(styleUri: String, bitmap: Bitmap) = style(styleUri) {
@@ -147,17 +216,21 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
     }
 
     override fun onMapLongClick(point: Point): Boolean {
+        addPoint(point)
+        return true
+    }
+
+    private fun addPoint(point: Point){
         val markerId = addMarkerAndReturnId(point)
 
         pointAdapter.addPoint(point)
         pointAdapter.notifyDataSetChanged()
 
-        addViewAnnotation(point, markerId)
+        addViewAnnotation(point, markerId, markerNum - 1)
         if ( lastAddedMarkerPosition != null){
             addLineAndDistance(lastAddedMarkerPosition!!, point)
         }
         lastAddedMarkerPosition = point
-        return true
     }
 
     private fun addMarkerAndReturnId(point: Point): String {
@@ -170,7 +243,7 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
         return currentId
     }
 
-    private fun addViewAnnotation(point: Point, markerId: String) {
+    private fun addViewAnnotation(point: Point, markerId: String, markerNumber: Int) {
         viewAnnotationManager.addViewAnnotation(
             resId = R.layout.view_annotation,
             options = viewAnnotationOptions {
@@ -188,7 +261,7 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
                     offsetY(markerHeight)
                 }
             )
-            viewAnnotation.findViewById<TextView>(R.id.annotation_txt).text = markerNum.toString()
+            viewAnnotation.findViewById<TextView>(R.id.annotation_txt).text = markerNumber.toString()
         }
     }
 
@@ -226,11 +299,6 @@ class MapActivity : AppCompatActivity(), OnMapLongClickListener, OnMapClickListe
         mapboxMap.getStyle { style ->
             style.getSourceAs<GeoJsonSource>(LINE_SOURCE_ID)?.featureCollection(featureCollection)
         }
-    }
-
-    override fun onMapClick(point: Point): Boolean {
-        clear()
-        return true
     }
 
     private fun clearAll(){
