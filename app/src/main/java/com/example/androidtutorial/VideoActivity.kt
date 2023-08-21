@@ -48,8 +48,6 @@ class VideoActivity : AppCompatActivity(), ClientObserver {
         if (OpenCVLoader.initDebug()){
             start()
         }
-
-
     }
 
     private fun normal() {
